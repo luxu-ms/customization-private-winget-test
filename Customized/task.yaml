@@ -1,0 +1,16 @@
+name: customized
+command: './main.ps1 -LocalRepoURL {{localRepoURL}} -RunAsUser {{runAsUser}}'
+inputs:
+  localRepoURL:
+    defaultValue: ''
+    type: 'string'
+    required: false
+    description: | 
+      Use the private winget repository.
+  runAsUser:
+    defaultValue: false
+    type: 'boolean'
+    required: false
+    description: | 
+      Whether to run the installation as the current user or as an administrator. 
+      If set to true, the installation will run during the user's first login to the machine.
