@@ -65,24 +65,6 @@ function SetupScheduledTasks {
     $TaskFolder.RegisterTaskDefinition("$($RunAsUserTask)", $Task , 6, "Users", $null, 4)
 }
 
-function InstallPS7 {
-    $code = Invoke-RestMethod -Uri https://aka.ms/install-powershell.ps1
-    $null = New-Item -Path function:Install-PowerShell -Value $code
-    Install-PowerShell -UseMSI -Quiet
-    # Need to update the path post install
-    $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
-}
-
-function InstallWinGet {
-    Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force -Scope AllUsers
-    Set-PSRepository -Name "PSGallery" -InstallationPolicy Trusted
-
-    Install-Module Microsoft.WinGet.Client -Scope AllUsers
-    #Add-Content -Path "$($CustomizationScriptsDir)\$($RunAsUserScript)" -Value "Repair-WinGetPackageManager -Latest"
-
-    pwsh.exe -MTA -Command "Install-Module Microsoft.WinGet.Configuration -AllowPrerelease -Scope AllUsers"
-}
-
 function getInstallCommand($package, $override) {
     $installCommand = ""
     if ($Package) {
@@ -104,28 +86,4 @@ if (($RunAsUser -eq "true") -and ($installCommand -ne "")) {
 # TODO only need to setup scheduled tasks if running as user
 if (!(Test-Path -PathType Leaf "$($CustomizationScriptsDir)\$($LockFile)")) {
     SetupScheduledTasks
-    InstallPS7
-}
-
-if (($RunAsUser -eq "false") -and ($installCommand -ne "")) {
-    Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{CommandLine="C:\Program Files\PowerShell\7\pwsh.exe -MTA -Command `"$installCommand`""}
-}
-
-if ($ConfigurationFile) {
-    if ($DownloadUrl) {
-        $ConfigurationFileDir = Split-Path -Path $ConfigurationFile
-        if(-Not (Test-Path -Path $ConfigurationFileDir))
-        {
-            New-Item -ItemType Directory -Path $ConfigurationFileDir
-        }
-
-        Invoke-WebRequest -Uri $DownloadUrl -OutFile $ConfigurationFile
-    }
-
-    if ($RunAsUser -eq "true") {
-        Add-Content -Path "$($CustomizationScriptsDir)\$($RunAsUserScript)" -Value "Get-WinGetConfiguration -File $($ConfigurationFile) | Invoke-WinGetConfiguration -AcceptConfigurationAgreements"
-        Add-Content -Path "$($CustomizationScriptsDir)\$($RunAsUserScript)" -Value '$env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")'
-    } else {
-        Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{CommandLine="C:\Program Files\PowerShell\7\pwsh.exe -MTA -Command `"Get-WinGetConfiguration -File $($ConfigurationFile) | Invoke-WinGetConfiguration -AcceptConfigurationAgreements`""}
-    }
 }
