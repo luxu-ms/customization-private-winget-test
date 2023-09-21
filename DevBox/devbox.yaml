@@ -6,8 +6,7 @@ setupTasks:
   - task: customized
     inputs:
       localRepoURL: 'https://demodeploy4.azurewebsites.net/api'
-      runAsUser: true
   - task: winget
     inputs:
-      package: 'Notepad++.Notepad++'
+      package: 'notepad++'
       runAsUser: true

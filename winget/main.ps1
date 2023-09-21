@@ -86,15 +86,14 @@ function InstallWinGet {
 function getInstallCommand($package, $override) {
     $installCommand = ""
     if ($Package) {
-        $installCommand = "Install-WinGetPackage -Id $($package)"
+        $installCommand = "winget install $($package)"
         if(-not ([string]::IsNullOrEmpty($override))) {
-            $installCommand += " -Override '$override'"
+            $installCommand += " --override '$override'"
         }
     }
 
     return $installCommand
 }
-
 
 $installCommand = getInstallCommand($Package, $Override)
 
@@ -106,7 +105,6 @@ if (($RunAsUser -eq "true") -and ($installCommand -ne "")) {
 if (!(Test-Path -PathType Leaf "$($CustomizationScriptsDir)\$($LockFile)")) {
     SetupScheduledTasks
     InstallPS7
-    InstallWinGet
 }
 
 if (($RunAsUser -eq "false") -and ($installCommand -ne "")) {
